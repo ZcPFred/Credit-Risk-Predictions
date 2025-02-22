@@ -58,7 +58,62 @@ The MonthlyIncome feature contains 29,731 missing values (19.8% of the training 
 
 ### Outlier Processing
 
+The boxplots may not be very intuitive for this data as most of the features contains fair amount of extreme values, but it can provide a overview for possible outliers.
+
 ![Boxplot](https://github.com/user-attachments/assets/88b0b8e4-a785-4473-9c27-f6e62fb6faec)
 
+Outlier detection has been implemented using Z statistics, IQR, and percentile based approach. To ensure it is safe to conclude some extreme values are in fact outliers, a deeper analysis to look into each features' extreme values has been implemented too. 
+
+A few features worth to mention:
+
+      The Age feature contains obvious outliers on one 0 years old person becuase its very unlikely a person with age of 0  will have 6000 monthly 
+      income and at the same time hold debt. The outlier is replaced by median.
+   
+      The NumberOfDependents feature contains one obvious outliers on a person that has 20 dependents.The outlier is replaced by median.
+   
+      The NumberOfTimes90DaysLate feature contains obvious outliers on values of 96 and 98, which largely deviated to the rest of the data.The outlier 
+      is replaced by median.
+
+The median imputation is implemented for outliers. It might looks more reasonable to apply Winsorization method which replace the outliers with the closest values remained. But because each features contains a fair amount of extreme values (not outliers), it is safer to use median imputation to maintain the feature's original distribution.
+
 ### Result
+
+A 5-fold cross validation has been implemented to evaluated the AUC performance of each models with default hyperparameter setting
+| Model                      | AUC         | Std       |
+| -------------------------- | ----------- | --------- |
+| LogisticRegression         | 0.773081521 | 0.0028122 |
+| RandomForestClassifier     | 0.838451575 | 0.0064946 |
+| KNeighborsClassifier       | 0.562682172 | 0.0017793 |
+| GradientBoostingClassifier | 0.864233168 | 0.0024135 |
+| AdaBoostClassifier         | 0.857671494 | 0.0024582 |
+| XGBClassifier              | 0.854376363 | 0.0031092 |
+
+From the table above it is obvious that the three boosting model have the best average performance. These three models are chosen to proceed with hyperparameter tuning using gridsearch, and the roc curve and confusion matrix are plotted with the tuned hyperparameters.
+
+#### GradientBoosting:
+
+![GB Roc](https://github.com/user-attachments/assets/131f4ccc-4712-4664-9293-30dbe85f55bb)
+![GB CM](https://github.com/user-attachments/assets/16c916f5-765b-47ef-95a6-2ad232a783b4)
+
+#### XGBoost:
+
+![Xg Roc](https://github.com/user-attachments/assets/a192219a-9cce-4c85-a4e7-bf83fc7e388c)
+![XG CM](https://github.com/user-attachments/assets/d5be2ebf-6dbf-4b2a-b60d-844758a251fd)
+
+#### AdaBoost:
+
+![Ada Roc](https://github.com/user-attachments/assets/7d92fdda-3b26-4ba2-99a2-a63019518a48)
+![Ada CM](https://github.com/user-attachments/assets/8751663f-d79e-4800-8fdf-0668cba79c31)
+
+
+## Conclusion
+
+|           | GradientBoostingClassifier | XGBClassifier | AdaBoostClassifier |
+| --------- | -------------------------- | ------------- | ------------------ |
+| AUC       | 0.8653                     | 0.8651        | 0.8602             |
+| Precision | 0.21                       | 0.2           | 0.2                |
+| Recall    | 0.77                       | 0.79          | 0.79               |
+| F1-Score  | 0.34                       | 0.32          | 0.32               |
+
+Overall GradientBoosting performed the best on AUC, precision, and F1-Score, XGBoost has very close AUC score, similar F1-Score and Precision score,  and better Recall score comparing to GradientBoosting. In conclusion, if AUC is chosen as the metric to evaluate models then choose GradientBoosting, if Recall is chosen as the metric to evaluate models then choose XGBoost. It is also worth to mention that the training time required for XGboost is significantly less than the GradientBoosting. 
  
